@@ -1,6 +1,6 @@
 [project]
 name = "dashai_flux_model_package"
-version = "0.0.3"
+version = "0.0.4"
 
 dependencies = [
     'torch>=2.0.1',
