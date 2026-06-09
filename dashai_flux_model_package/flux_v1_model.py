@@ -14,6 +14,7 @@ from DashAI.back.core.schema_fields.base_schema import BaseSchema
 from DashAI.back.models.text_to_image_generation_model import (
     TextToImageGenerationTaskModel,
 )
+from DashAI.back.models.utils import DEVICE_ENUM, DEVICE_PLACEHOLDER, DEVICE_TO_IDX
 
 
 class FluxV1Schema(BaseSchema):
@@ -61,9 +62,9 @@ class FluxV1Schema(BaseSchema):
     )  # type: ignore
 
     device: schema_field(
-        enum_field(enum=["cuda", "cpu"] if torch.cuda.is_available() else ["cpu"]),
-        placeholder="cuda" if torch.cuda.is_available() else "cpu",
-        description="Device for generation. Use 'cuda' if GPU is available.",
+        enum_field(enum=DEVICE_ENUM),
+        placeholder=DEVICE_PLACEHOLDER,
+        description="Device for generation. Use GPU if available.",
     )  # type: ignore
 
     seed: schema_field(
@@ -101,7 +102,10 @@ class FluxV1Model(TextToImageGenerationTaskModel):
     def __init__(self, **kwargs):
         """Initialize the model."""
         kwargs = self.validate_and_transform(kwargs)
-        self.device = kwargs.get("device")
+        use_gpu = DEVICE_TO_IDX.get(kwargs.get("device")) >= 0
+        self.device = (
+            f"cuda:{DEVICE_TO_IDX.get(kwargs.get('device'))}" if use_gpu else "cpu"
+        )
         self.model_name = kwargs.get("model_name", "black-forest-labs/FLUX.1-dev")
         self.huggingface_key = kwargs.get("huggingface_key")
 
